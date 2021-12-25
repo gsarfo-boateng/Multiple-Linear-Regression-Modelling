@@ -1,0 +1,204 @@
+---
+title: Multiple Regression Analysis of Meningococcal Infection two Populations from
+  1992-2015
+author: "George Boateng-Sarfo and Dylan Miska"
+date: "11/22/2021"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+editor_options:
+  chunk_output_type: inline
+---
+##Library
+```{r, message=FALSE}
+library(ggplot2) # Data visualization
+library(readr) # CSV file I/O, e.g. the read_csv function
+library("scatterplot3d") # Used to show 3d scatter plot
+```
+
+##Get the Data
+```{r, message=FALSE}
+# getwd()
+# setwd()
+Epid = read.csv("data1.csv", header = TRUE)
+head(Epid)
+```
+
+
+##Make an Epid matix
+```{r, message=FALSE}
+E <- as.matrix(cbind(1, Epid$CP, Epid$APPSIMD))
+head(E)
+```
+
+##Parameter Estimates (β̂)
+```{r, message=FALSE}
+y<- (Epid$IMD)
+y<- as.numeric(y)
+y
+beta.hat <-solve(t(E) %*% E) %*% t(E) %*% y
+beta.hat
+```
+
+##Predicted value
+```{r, message=FALSE}
+mu.hat <- E %*% beta.hat
+head(mu.hat)
+```
+##Find Variance( σ2), Residual Standard Error, Degree of Freedom, Variance Covariance Matrix.
+```{r, message=FALSE}
+n<-nrow(E)
+p<-ncol(E)
+
+sigma2<-sum((y-mu.hat)^2/(n-p))
+sigma2
+```
+
+##Residual Standard Error
+```{r, message=FALSE}
+sqrt(sigma2)
+```
+
+##Degree of Freedom
+```{r, message=FALSE}
+n-p
+```
+
+##Variance Covariance Matrix
+```{r, message=FALSE}
+Var<- solve(t(E) %*% E) *sigma2
+Var
+```
+
+##Standard errors of the parameter estimates
+```{r, message=FALSE}
+sqrt(diag(Var))
+```
+
+##t-value for the parameter estimates
+```{r, message=FALSE}
+t.values<-beta.hat/sqrt(diag(Var))
+t.values
+```
+
+##P-values for the parameter estimates
+```{r, message=FALSE}
+2*(1-pt(abs(t.values),n-p))
+```
+##Checking the result with lm
+```{r, message=FALSE}
+result.lm<-lm(IMD~CP+APPSIMD, data = Epid)
+result.lm
+```
+
+```{r, message=FALSE}
+summary(result.lm)
+```
+
+```{r, message=FALSE}
+plot(result.lm)
+```
+
+
+```{r, message=FALSE}
+anova(result.lm)
+```
+```{r, message=FALSE}
+CP <- Epid$CP
+APPSIMD <- Epid$APPSIMD
+IMD <- Epid$IMD
+
+s3d <- scatterplot3d(CP, APPSIMD, IMD, type = "h", color = "blue", angle=55, pch = 16)
+s3d$plane3d(result.lm)
+```
+
+
+##Model for children (0-14 years)
+```{r, message=FALSE}
+Epid2<- read.csv("data2.csv", header = T)
+Epid2 = Epid2 [-26:-25,]
+head(Epid2)
+```
+
+##Matrix for Children Population
+```{r, message=FALSE}
+E2 <- as.matrix(cbind(1, Epid2$PC, Epid2$APPSIMD))
+head(E2)
+```
+
+##Estimate for Children Population
+```{r, message=FALSE}
+y2<- (Epid2$MID)
+head(y2)
+beta.hat2 <- solve(t(E2) %*% E2) %*% t(E2) %*% y2
+beta.hat2
+```
+##Predicted values for Children 
+```{r, message=FALSE}
+mu.hat2 <- E2 %*% beta.hat2
+head(mu.hat2)
+```
+
+##Find covariance in the children Population
+```{r, message=FALSE}
+n2<-nrow(E2)
+p2<-ncol(E2)
+
+sigma2c<-sum((y-mu.hat2)^2/(n2-p2))
+sigma2c
+```
+
+##Residual Standard Error for the children population
+```{r, message=FALSE}
+sqrt(sigma2c)
+```
+
+##Degree of fredom for the children Population
+```{r, message=FALSE}
+n-p
+```
+
+##Generating varaince covariance matrix for children Population 
+```{r, message=FALSE}
+Varc<- solve(t(E2) %*% E2) *sigma2c
+Varc
+```
+
+##Standard Errors of the parameters Estimated for the children population
+```{r, message=FALSE}
+sqrt(diag(Varc))
+```
+##t-values for the estimated paramters fot the children 
+```{r, message=FALSE}
+t.valuesc<-beta.hat2/sqrt(diag(Varc))
+t.valuesc
+```
+##P-values  for the estimated paramters for the children
+```{r, message=FALSE}
+2*(1-pt(abs(t.valuesc),n2-p2))
+```
+
+##Checking the results with the lm funx
+```{r, message=FALSE}
+result.lm_Children<-lm(MID~PC+APPSIMD, data = Epid2)
+result.lm_Children
+```
+##Summary of the model for the children Population
+```{r, message=FALSE}
+summary(result.lm_Children)
+```
+
+```{r, message=FALSE}
+plot(result.lm_Children)
+```
+
+
+```{r, message=FALSE}
+CP <- Epid2$PC
+APPSIMD <- Epid2$APPSIMD
+IMD <- Epid2$MID
+
+s3d <- scatterplot3d(CP, APPSIMD, IMD, type = "h", color = "blue", angle=55, pch = 16)
+s3d$plane3d(result.lm_Children)
+```
